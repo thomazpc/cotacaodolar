@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Conversor de Moeda</title>
+</head>
+
+<body>
+    <h1>COTAÇÃO DOLAR/REAL</h1>
+    <form id="currency-form">
+        <label for="conversionType">Converter seu dinheiro de:</label>
+        <select id="conversionType">
+            <option value="dolarParaReal">Dólar para Real</option>
+            <option value="realParaDolar">Real para Dólar</option>
+        </select><br>
+
+        <label for="amount">Valor a ser Convertido:</label>
+        <input type="number" id="amount" step="0.01" required><br>
+
+        <label for="exchangeRate">Cotação Dólar (Atual):</label>
+        <span id="exchangeRate">Carregando...</span><br>
+
+        <button type="button" onclick="convertCurrency()">Converter</button>
+        <button type="button" onclick="clearForm()">Limpar</button>
+    </form>
+    <p id="resultado"></p>
+
+    <script>
+        let exchangeRate;
+
+        // Função para obter a cotação do dólar
+        async function fetchExchangeRate() {
+            try {
+                const response = await fetch('https://economia.awesomeapi.com.br/last/USD-BRL');
+                const data = await response.json();
+                exchangeRate = parseFloat(data.USDBRL.bid).toFixed(2);
+                document.getElementById('exchangeRate').innerText = `R$ ${exchangeRate}`;
+            } catch (error) {
+                document.getElementById('exchangeRate').innerText = "Erro ao carregar a cotação.";
+                console.error('Erro ao buscar a cotação:', error);
+            }
+        }
+
+        // Chama a função para buscar a cotação assim que a página é carregada
+        window.onload = fetchExchangeRate;
+
+        function convertCurrency() {
+            const conversionType = document.getElementById('conversionType').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const resultado = document.getElementById('resultado');
+
+            // Validação dos valores de entrada
+            if (isNaN(amount) || amount <= 0) {
+                resultado.innerText = "Por favor, insira um valor válido e maior que zero.";
+                return;
+            }
+            if (!exchangeRate || isNaN(exchangeRate) || exchangeRate <= 0) {
+                resultado.innerText = "Cotação indisponível. Tente novamente mais tarde.";
+                return;
+            }
+
+            // Cálculo da conversão com base no tipo de conversão
+            let convertedValue;
+            if (conversionType === "dolarParaReal") {
+                convertedValue = (amount * exchangeRate).toFixed(2);
+                resultado.innerText = `O valor em reais é R$ ${convertedValue}.`;
+            } else if (conversionType === "realParaDolar") {
+                convertedValue = (amount / exchangeRate).toFixed(2);
+                resultado.innerText = `O valor em dólares é $ ${convertedValue}.`;
+            }
+        }
+
+        function clearForm() {
+            document.getElementById('amount').value = '';
+            document.getElementById('resultado').innerText = '';
+        }
+    </script>
+
+    <footer>
+        <p>Site desenvolvido por &reg; Thomaz Pires<br>
+            Contato: <a href="mailto:thomaz@thomazpires.com">thomaz@thomazpires.com</a></p>
+    </footer>
+</body>
+
+</html>
